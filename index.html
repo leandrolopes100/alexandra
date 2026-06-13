@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -464,6 +464,7 @@ body{
 }</style>
 </head>
 <body>
+<div id="yt-wrap" style="position:fixed;bottom:0;right:0;width:1px;height:1px;overflow:hidden;opacity:.01;pointer-events:none;z-index:-1;"><div id="yt-p"></div></div>
 <div id="flash"></div>
 <div id="rays"></div>
 <div class="vignette"></div>
@@ -1100,9 +1101,35 @@ document.addEventListener('touchmove', function(e){
   spawnSparkle(e.touches[0].clientX, e.touches[0].clientY);
 },{passive:true});
 
-;
+<script>
+/* ── YouTube player vars ──────────────────────────────────── */
+var ytPlayer  = null;
+var ytReady   = false;
+var ytPlaying = false;
+var YT_VID    = 'HR4ZxjGQGYY';
 
-/* ── Substituir botão (remove listener antigo do Web Audio) ─ */
+window.onYouTubeIframeAPIReady = function() {
+  ytPlayer = new YT.Player('yt-p', {
+    videoId: YT_VID,
+    playerVars: {
+      autoplay: 0, controls: 0, disablekb: 1,
+      loop: 1, playlist: YT_VID,
+      playsinline: 1, rel: 0, modestbranding: 1, iv_load_policy: 3
+    },
+    events: {
+      onReady: function(e) {
+        ytReady = true;
+        e.target.setVolume(72);
+      },
+      onStateChange: function(e) {
+        if (e.data === YT.PlayerState.ENDED) {
+          ytPlayer.seekTo(0); ytPlayer.playVideo();
+        }
+      }
+    }
+  });
+};
+</script>/* ── Substituir botão (remove listener antigo do Web Audio) ─ */
 (function() {
   var oldBtn = document.getElementById('mbtn');
   if (!oldBtn) return;
