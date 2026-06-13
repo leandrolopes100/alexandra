@@ -464,7 +464,7 @@ body{
 }</style>
 </head>
 <body>
-<div id="yt-wrap" style="position:fixed;bottom:0;right:0;width:1px;height:1px;overflow:hidden;opacity:.01;pointer-events:none;z-index:-1;"><div id="yt-p"></div></div>
+<div id="yt-wrap" style="position:fixed;left:-9999px;bottom:0;width:320px;height:180px;pointer-events:none;z-index:-1;"><div id="yt-p"></div></div>
 <div id="flash"></div>
 <div id="rays"></div>
 <div class="vignette"></div>
@@ -807,7 +807,7 @@ function ensureCtx() {
 }
 
 const mbtn = document.getElementById('mbtn');
-mbtn.addEventListener('click', () => {
+mbtn.addEventListener('click', () => { if(window._ytMode) return;
   ensureCtx();
   melPlaying = !melPlaying;
   if (melPlaying) {
@@ -1102,76 +1102,68 @@ document.addEventListener('touchmove', function(e){
 },{passive:true});
 
 <script>
-/* ── YouTube player vars ──────────────────────────────────── */
-var ytPlayer  = null;
-var ytReady   = false;
-var ytPlaying = false;
-var YT_VID    = 'HR4ZxjGQGYY';
+/* ── YouTube player ───────────────────────────────────── */
+window._ytMode  = true;
+var ytPlayer    = null;
+var ytReady     = false;
+var ytOn        = false;
 
 window.onYouTubeIframeAPIReady = function() {
   ytPlayer = new YT.Player('yt-p', {
-    videoId: YT_VID,
+    width: '320', height: '180',
+    videoId: 'HR4ZxjGQGYY',
     playerVars: {
-      autoplay: 0, controls: 0, disablekb: 1,
-      loop: 1, playlist: YT_VID,
-      playsinline: 1, rel: 0, modestbranding: 1, iv_load_policy: 3
+      autoplay: 0, controls: 0, loop: 1,
+      playlist: 'HR4ZxjGQGYY',
+      playsinline: 1, rel: 0, modestbranding: 1
     },
     events: {
       onReady: function(e) {
         ytReady = true;
         e.target.setVolume(72);
+        console.log("YouTube pronto!");
       },
-      onStateChange: function(e) {
-        if (e.data === YT.PlayerState.ENDED) {
-          ytPlayer.seekTo(0); ytPlayer.playVideo();
-        }
+      onError: function(e) {
+        console.error("YouTube erro:", e.data);
       }
     }
   });
 };
-</script>/* ── Substituir botão (remove listener antigo do Web Audio) ─ */
-(function() {
-  var oldBtn = document.getElementById('mbtn');
-  if (!oldBtn) return;
 
-  /* Clonar remove todos os listeners anteriores */
-  var btn  = oldBtn.cloneNode(true);
-  var bar  = document.getElementById('music-bar');
-  oldBtn.parentNode.replaceChild(btn, oldBtn);
+/* Substituir botao — sem cloneNode, usa _ytMode como guarda */
+(function() {
+  var btn = document.getElementById('mbtn');
+  var bar = document.getElementById('music-bar');
+  if (!btn) return;
 
   btn.addEventListener('click', function() {
-
-    /* Ainda carregando */
     if (!ytReady || !ytPlayer) {
-      btn.textContent = '⌛ Carregando...';
-      var wait = setInterval(function() {
+      btn.textContent = '⌛ Aguarde...';
+      var tid = setInterval(function() {
         if (ytReady && ytPlayer) {
-          clearInterval(wait);
+          clearInterval(tid);
           btn.textContent = '♪ Ouvir meu coração';
           btn.click();
         }
-      }, 400);
+      }, 350);
       return;
     }
-
-    ytPlaying = !ytPlaying;
-
-    if (ytPlaying) {
+    ytOn = !ytOn;
+    if (ytOn) {
       ytPlayer.playVideo();
       btn.textContent = '♫ Pausar';
       btn.classList.add('on');
-      if (bar) bar.classList.add('playing');
+      if (bar) bar.classList.add("playing");
     } else {
       ytPlayer.pauseVideo();
       btn.textContent = '♪ Ouvir meu coração';
       btn.classList.remove('on');
-      if (bar) bar.classList.remove('playing');
+      if (bar) bar.classList.remove("playing");
     }
   });
 })();
 </script>
 
-<!-- YouTube IFrame API — deve vir DEPOIS da definição de onYouTubeIframeAPIReady -->
 <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
